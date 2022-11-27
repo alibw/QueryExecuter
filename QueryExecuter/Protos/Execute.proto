@@ -1,0 +1,25 @@
+﻿syntax = "proto3";
+package Execute;
+option csharp_namespace = "QueryExecuter";
+
+service QueryExecuter
+{
+  rpc exec(QueryParameter) returns (QueryResultList);
+}
+
+message QueryParameter
+{
+  repeated string Names = 1;
+}
+
+message QueryResultList
+{
+  repeated QueryResult queryResultList = 1;
+}
+
+message QueryResult
+{
+  string Result = 1;
+  string Error = 2;
+  string QueryName = 3;
+}

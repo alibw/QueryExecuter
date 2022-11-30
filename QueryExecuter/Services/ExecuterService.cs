@@ -9,28 +9,14 @@ namespace QueryExecuter.Services;
 
 public class ExecuterService : QueryExecuter.QueryExecuterBase
 {
-    string path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, @"../"));
-
-    public override async Task<QueryResultList> exec(QueryParameter request, ServerCallContext context)
+    private const string path = @"C:\Users\Administrator\Documents\LINQPad Queries\Queries To Use";
+    public override async Task<QueryResultList> ExecuteQuery(QueryParameter request, ServerCallContext context)
     {
         QueryResultList resultList = new QueryResultList();
-        foreach (var name in request.Names)
+        foreach (var file in request.Names)
         {
-            var result = await Cli.Wrap(@"C:\Program Files\LINQPad7\lprun7.exe")
-                .WithArguments($@"{path}Queries\{name}.linq")
-                .WithValidation(CommandResultValidation.None)
-                .WithWorkingDirectory("C:\\Users\\Ali")
-                .ExecuteBufferedAsync();
-            
-            var queryResult = new QueryResult()
-            {
-                QueryName = name,
-                Result = result.StandardOutput,
-                Error = result.StandardError
-            };
-            resultList.QueryResultList_.Add(queryResult);
+            QueryCompiler.CompileAndRunQuery(file);
         }
-
         return await Task.FromResult(resultList);
     }
 }

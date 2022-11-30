@@ -4,7 +4,7 @@ option csharp_namespace = "QueryExecuter";
 
 service QueryExecuter
 {
-  rpc exec(QueryParameter) returns (QueryResultList);
+  rpc ExecuteQuery(QueryParameter) returns (QueryResultList);
 }
 
 message QueryParameter

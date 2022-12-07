@@ -60,9 +60,9 @@ public static class QueryCompiler
 
     private static async Task<object> RunQueryWithLpRun(string filePath)
     {
-        var result = await Cli.Wrap(LinqPadPath)
+        var result =  Cli.Wrap(LinqPadPath)
             .WithArguments(new []{filePath})
-            .ExecuteBufferedAsync();
+            .ExecuteBufferedAsync().Task.Result;
         return Task.FromResult(new
         {
             QueryName = filePath,
@@ -73,9 +73,9 @@ public static class QueryCompiler
 
     private static async void CompileQuery(string filePath)
     {
-        var result = await Cli.Wrap(LinqPadPath)
+        var result = Cli.Wrap(LinqPadPath)
             .WithArguments(new[] { "-compileonly",filePath})
-            .ExecuteBufferedAsync();
+            .ExecuteBufferedAsync().Task.Result;
     }
 
     private static string GetCachedAssemblyPath(string filePath)

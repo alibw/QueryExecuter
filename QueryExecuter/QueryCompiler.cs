@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,7 +12,11 @@ public static class QueryCompiler
 {
     private const string QueriesPath = @"C:\Users\Ali\Documents\LINQPad Queries\Queries To Use";
     private const string LinqPadPath = @"C:\Program Files\LINQPad7\lprun7.exe";
-    
+    private static Dictionary<string, Tuple<object?, MethodInfo?>> QueryCaches;
+    static QueryCompiler()
+    {
+        QueryCaches = new Dictionary<string, Tuple<object?, MethodInfo?>>();
+    }
     public static void CompileQueries()
     {
         foreach (var file in Directory.GetFiles(QueriesPath))
@@ -32,14 +37,26 @@ public static class QueryCompiler
 
     private static object RunQueryWithAssembly(string filePath)
     {
+        MethodInfo? mainMethod;
+        object? typeInstance;
         var assemblyPath = GetCachedAssemblyPath(filePath);
-        Assembly assembly = Assembly.LoadFrom(assemblyPath);
-        var type = assembly.GetType("UserQuery");
-        var instance = Activator.CreateInstance(type);
-        var mainMethod = type.GetMethod("Main",BindingFlags.Instance | BindingFlags.NonPublic);
+        var cachedQuery = GetCachedQuery(filePath);
+        if (cachedQuery != null)
+        {
+            typeInstance = cachedQuery.Item1;
+            mainMethod = cachedQuery.Item2;
+        }
+        else
+        {
+            Assembly assembly = Assembly.LoadFrom(assemblyPath);
+            var type = assembly.GetType("UserQuery");
+            typeInstance = Activator.CreateInstance(type);
+            mainMethod = type.GetMethod("Main", BindingFlags.Instance | BindingFlags.NonPublic);
+            QueryCaches.Add(filePath,new Tuple<object?, MethodInfo?>(typeInstance,mainMethod));
+        }
         try
         {
-            mainMethod.Invoke(instance, null);
+            mainMethod?.Invoke(typeInstance, null);
         }
         catch (Exception e)
         {
@@ -111,6 +128,11 @@ public static class QueryCompiler
         {
             return false;
         }
+    }
+
+    private static Tuple<object?, MethodInfo?> GetCachedQuery(string filePath)
+    {
+        return QueryCaches.FirstOrDefault(x => x.Key == filePath).Value;
     }
 
     private static string FormatHex(byte[] data)
